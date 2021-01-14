@@ -7,74 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="{% static 'website/font-awesome/css/all.min.css'%}">
-    <style>
-        *{
-            font-family: arial;
-        }
-        .mx-auto{
-            margin: 0 auto;
-        }
-        .container-sm{
-            max-width: 560px;
-        }
-        .container-xs{
-            max-width: 300px;
-        }
-        .text-center{
-            text-align: center;
-        }
-        .w-100{
-            width:100%;
-        }
-        .w-90{
-            width:90%;
-        }
-        .w-50{
-            width:50%;
-        }
-        .mb-3{
-            margin-bottom: 8px;
-        }
-        .mb-4{
-            margin-bottom: 12px;
-        }
-        .mt-1{
-            margin-top: 2px;
-        }
-        .block{
-            display:block;
-        }
-        small{
-            font-size: 0.9rem;
-        }
-        input[type=text],input[type=password]{
-            height: 1.2rem;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease-in-out;
-        }
-        input[type=text]:focus,input[type=password]:focus{
-            border-style: inset;
-            border: 2px solid rgb(66,123,255,0.65);
-        }
-        .pwd-eye{
-            font-size:1.1rem;
-            cursor:pointer;
-            position: absolute;
-            top: 6px;
-            right: 0px;
-            opacity: 0.8;
-        }
-        .hide{
-            display:none;
-        }
-        .flex-container{
-            display:flex;
-        }
-        .flex-container > div{
-            width:50%;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'website/variables.css'%}">
 </head>
 <body>
     <form id="register-form" class="container-xs mx-auto" action="{% url 'register'%}" method="post">
@@ -99,49 +32,71 @@
         </div>
 
         <small>Password</small>
-        <div class="paswdField-container" style="position:relative;">
-            <i class="far fa-eye pwd-eye hide"></i>
-            <i class="far fa-eye-slash pwd-eye"></i>
+        <div class="passwordField-container" style="position:relative;">
+            <i class="far fa-eye-slash fa-eye pwd-eye"></i>
+            <input id="pwd-inp" class="passwordField w-100 mt-1 mb-4" type="password" name="password" placeholder="enter password">
+        </div>
+        <div class="strength-indicator mb-4 hide">
+        </div>
+        <small>Confirm password</small>
+        <div class="passwordField-container" style="position:relative;">
+            <i class="far fa-eye-slash fa-eye pwd-eye"></i>
             <input class="passwordField w-100 mt-1 mb-4" type="password" placeholder="enter password">
         </div>
-        <small>Confirm Password</small>
-        <div class="paswdField-container" style="position:relative;">
-            <i class="far fa-eye pwd-eye hide"></i>
-            <i class="far fa-eye-slash pwd-eye"></i>
-            <input class="passwordField w-100 mt-1 mb-4" type="password" placeholder="enter password">
-        </div>
-        <button type="submit" onclick="submitForm()">submit</button>
+        <button type="sumbit" onclick="submitForm()">submit</button>
     </form>
     <script>
         newPwdObj = (inp) =>{
             let showPass = false
             return {
-                switch: (e)=>{
+                switch_factory: ()=>{
                     return function(){
                         showPass = !showPass
-                        this.classList.add("hide"); 
-                        e.classList.remove("hide");
+                        this.classList.toggle("fa-eye-slash")
                         inpType = (showPass)? "text":"password"
                         inp.setAttribute("type",inpType)
                     }
                 }
             }
         }
-        pwdObjs = []
-        pwdContainers = document.getElementsByClassName("paswdField-container")
-        for(container of pwdContainers){
-            ary = []
-            for(e of container.children) {
-                ary.push(e)
+        load_pwdEyes = ()=>{
+            pwdObjs = []
+            pwdContainers = document.getElementsByClassName("passwordField-container")
+            for(container of pwdContainers){
+                ary = []
+                for(e of container.children) {
+                    ary.push(e)
+                }
+                pwdObjs.push(ary)
             }
-            pwdObjs.push(ary)
+            for (obj of pwdObjs){
+                [ico,inp] = [obj[0],obj[1]] // icon1,icon2,input
+                ff = newPwdObj(inp)
+                ico.addEventListener("click",ff.switch_factory())
+            }
         }
-        for (obj of pwdObjs){
-            [ico1,ico2,inp] = [obj[0],obj[1],obj[2]] // icon1,icon2,input
-            ff = newPwdObj(inp)
-            ico1.addEventListener("click",ff.switch(ico2))
-            ico2.addEventListener("click",ff.switch(ico1))
+        load_pwdEyes()
+
+        function submitForm(){
+            document.getElementById("register-form").submit()
         }
+        pwdInp = document.querySelector('#pwd-inp')
+    
+        indicator = document.querySelector('.strength-indicator')
+        setInterval(function(){
+            if (pwdInp.value.length > 0 && indicator.classList.contains("hide")){
+                indicator.classList.toggle("hide")
+            }
+            window.requestAnimationFrame(function(){
+                    if (pwdInp.value.length >= 8 && !indicator.classList.contains("strength-100")){
+                        indicator.classList.add("strength-100")
+                    }else if (pwdInp.value.length > 4 && !indicator.classList.contains("strength-66")){
+                        indicator.classList.add("strength-66")
+                    }else if (pwdInp.value.length > 0 && !indicator.classList.contains("strength-33")){
+                        indicator.classList.add("strength-33")
+                    }
+            })
+        },100)
     </script>
 </body>
 </html>
